@@ -53,6 +53,27 @@ def get_CLANS_class():
     return result
 
 
+def merge_families_into_clans(data):
+    file_h = open("temp_files/Pfam-A.clans.tsv")
+    file = file_h.readlines()
+    file_h.close()
+    data_clans = [i.split("	")[:2] for i in file]
+
+    result = {}
+    for i in data:
+        for i1 in data_clans:
+            if i == i1[0]:
+                if i1[1]:
+                    if i1[1] in result:
+                        result[i1[1]].extend(data[i])
+                    else:
+                        result[i1[1]] = data[i]
+                else:
+                    result[i] = data[i]
+
+    return result
+
+
 def group_making(dictionary, indexing):
     groups = []
     for i in dictionary:
@@ -71,6 +92,7 @@ def compare_groups(group1, group2):
             temp = metrics.jaccard_score(i, i1)
             if temp > test:
                 test = temp
+        print(test)
         result.append(test)
 
     return result
@@ -85,10 +107,12 @@ cd_hit_groups = group_making(cd_hit_lab, indexing)
 CLANS_lab = get_CLANS_class()
 CLANS_groups = group_making(CLANS_lab, indexing)
 
-hist_data = compare_groups(true_groups, CLANS_groups)
+pfam_clans_lab = merge_families_into_clans(true_lab)
+pfam_clans_groups = group_making(pfam_clans_lab, indexing)
+print(len(pfam_clans_groups))
+
+hist_data = compare_groups(pfam_clans_groups, CLANS_groups)
 
 plt.figure()
 plt.hist(hist_data)
 plt.show()
-
-
